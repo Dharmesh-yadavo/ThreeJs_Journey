@@ -6,6 +6,34 @@ import * as dat from "lil-gui";
 
 //! Debug
 const gui = new dat.GUI();
+const myObject = {
+  myBoolean: true,
+  myFunction: function () {},
+  myString: "lil-gui",
+  myNumber: 1,
+  myProperty: "spin",
+};
+
+gui.add(myObject, "myBoolean"); // Checkbox
+gui.add(myObject, "myFunction"); // Button
+gui.add(myObject, "myString"); // Text Field
+gui.add(myObject, "myNumber"); // Number Field
+
+// Add sliders to number fields by passing min and max
+gui.add(myObject, "myNumber", 0, 1);
+gui.add(myObject, "myNumber", 0, 100, 2); // snap to even numbers { means 0,2,4,6,8....,100 }
+
+// Create dropdowns by passing an array or object of named values
+gui.add(myObject, "myNumber", [0, 1, 2]);
+gui.add(myObject, "myNumber", { Label1: 0, Label2: 1, Label3: 2 });
+
+// Chainable methods
+gui
+  .add(myObject, "myProperty")
+  .name("Custom Name")
+  .onChange((value) => {
+    console.log(value);
+  });
 
 const parameters = {
   color: "green",
