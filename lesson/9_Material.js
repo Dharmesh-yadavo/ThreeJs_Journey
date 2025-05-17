@@ -1,17 +1,23 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-// import * as dat from dat.gui ;
+import * as dat from "dat.gui";
+import { metalness } from "three/tsl";
 
 //! Debug:
-// const gui = new dat.GUI();
-// console.log(gui);
+const gui = new dat.GUI();
+console.log(gui);
 
 //! Textures
 const textureLoader = new THREE.TextureLoader();
 
+//~ cube texture loader
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
 const doorColorTexture = textureLoader.load(
   "../static/textures/door/color.jpg"
 );
+doorColorTexture.colorSpace = THREE.SRGBColorSpace;
+
 const doorAlphaTexture = textureLoader.load(
   "../static/textures/door/alpha.jpg"
 );
@@ -41,6 +47,16 @@ const gradientTexture = textureLoader.load(
 const matcaps8 = textureLoader.load("../static/textures/matcaps/8.png");
 
 matcaps8.colorSpace = THREE.SRGBColorSpace;
+
+//~ texture for environmentMap:
+const environmentMapTexture = cubeTextureLoader.load([
+  "../static/textures/environmentMap/px.png",
+  "../static/textures/environmentMap/nx.png",
+  "../static/textures/environmentMap/py.png",
+  "../static/textures/environmentMap/ny.png",
+  "../static/textures/environmentMap/pz.png",
+  "../static/textures/environmentMap/nz.png",
+]);
 
 /**
  * Base
@@ -91,20 +107,66 @@ const scene = new THREE.Scene();
 // material.gradientMap = gradientTexture;
 
 //! MeshStandardMaterial:
+// const material = new THREE.MeshStandardMaterial();
+// material.metalness = 0;
+// material.roughness = 1;
+// material.map = doorColorTexture;
+// material.aoMap = doorAmbientOcclusionTexture;
+// material.aoMapIntensity = 1;
+// material.displacementMap = doorHeightTexture;
+// material.displacementScale = 0.05;
+// material.metalnessMap = doorMetalnessTexture;
+// material.roughnessMap = doorRoughnessTexture;
+// material.normalMap = doorNormalTexture;
+// material.normalScale.set(1, 1);
+// material.transparent = true;
+// material.alphaMap = doorAlphaTexture;
+
+//! creating a environment map:
 const material = new THREE.MeshStandardMaterial();
-material.metalness = 0.45;
-material.roughness = 0.65;
+material.metalness = 0.7;
+material.roughness = 0.2;
+//~ using environment map texture:
+material.envMap = environmentMapTexture;
 
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), material);
+gui.add(material, "metalness").min(0).max(1).step(0.0001);
+gui.add(material, "roughness").min(0).max(1).step(0.0001);
+gui.add(material, "aoMapIntensity").min(0).max(10).step(1);
+gui.add(material, "displacementScale").min(0).max(1).step(0.05);
+
+// const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), material);
+//~updated for displacementScale:
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 64, 64), material);
 sphere.position.x = -1.5;
+//~ao map
+sphere.geometry.setAttribute(
+  "uv2",
+  new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2)
+);
+// const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+//~updated for displacementScale:
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 100, 100), material);
+//~ao map
+plane.geometry.setAttribute(
+  "uv2",
+  new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2)
+);
 
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
-
+// const torus = new THREE.Mesh(
+//   new THREE.TorusGeometry(0.3, 0.2, 16, 32),
+//   material
+// );
+//~updated for displacementScale:
 const torus = new THREE.Mesh(
-  new THREE.TorusGeometry(0.3, 0.2, 16, 32),
+  new THREE.TorusGeometry(0.3, 0.2, 64, 128),
   material
 );
 torus.position.x = 1.5;
+//ao map
+torus.geometry.setAttribute(
+  "uv2",
+  new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2)
+);
 
 scene.add(sphere, plane, torus);
 
